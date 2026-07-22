@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Build output
+frontend/dist/
+backend/dist/
+
+# Runtime & sensitive local data
+Runtime/
+Logs/
+Backups/
+AP-Info-Manager.xlsx
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Env secrets
+.env
+.env.*
