@@ -5,13 +5,14 @@ import { LanguageProvider } from "./context/LanguageContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
 import "./index.css";
+import { LicenseGate } from "./components/LicenseGate";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <LanguageProvider>
       <ThemeProvider>
         <ToastProvider>
-          <App />
+          <LicenseGate><App /></LicenseGate>
         </ToastProvider>
       </ThemeProvider>
     </LanguageProvider>

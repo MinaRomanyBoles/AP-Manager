@@ -1,0 +1,11 @@
+{
+  "name": "ap-manager-distribution",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --import ./backend/node_modules/tsx/dist/loader.mjs --test tests/*.test.ts",
+    "build:client": "node tools/build-client.mjs"
+  },
+  "devDependencies": { "esbuild": "0.28.2", "postject": "1.0.0-alpha.6" }
+}
