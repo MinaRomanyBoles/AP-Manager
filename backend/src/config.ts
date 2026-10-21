@@ -1,10 +1,11 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { packaged } from "./packagedAssets.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
+export const PROJECT_ROOT = packaged ? path.dirname(process.execPath) : path.resolve(__dirname, "..", "..");
 export const SCRIPTS_DIR = path.join(PROJECT_ROOT, "Scripts");
 export const LOGS_DIR = path.join(PROJECT_ROOT, "Logs");
 export const BACKUPS_DIR = path.join(PROJECT_ROOT, "Backups");

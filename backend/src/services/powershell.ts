@@ -1,7 +1,9 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { ALLOWED_SCRIPTS, COMMAND_TIMEOUT_MS, RUNTIME_DIR, SCRIPTS_DIR } from "../config.js";
+import { ALLOWED_SCRIPTS, COMMAND_TIMEOUT_MS, PROJECT_ROOT, RUNTIME_DIR, SCRIPTS_DIR } from "../config.js";
+import { assertClientLicense } from "../licensing/manager.js";
+import { packaged, preparePowerShellPayload } from "../packagedAssets.js";
 
 export interface PowerShellResult {
   exitCode: number;
@@ -28,19 +30,22 @@ function sanitizeArg(value: string): string {
 export function runPowerShellScript(options: RunScriptOptions): Promise<PowerShellResult> {
   const { scriptName, args, timeoutMs = COMMAND_TIMEOUT_MS, showWindow = false, outputJsonPath } = options;
 
+  // Also protects jobs that were queued before the expiry boundary.
+  assertClientLicense();
+
   if (!ALLOWED_SCRIPTS.has(scriptName)) {
     return Promise.reject(new Error(`Script '${scriptName}' is not allowed.`));
   }
 
   const scriptPath = path.join(SCRIPTS_DIR, scriptName);
-  if (!fs.existsSync(scriptPath)) {
+  if (!packaged && !fs.existsSync(scriptPath)) {
     return Promise.reject(new Error(`Script not found: ${scriptName}`));
   }
 
   fs.mkdirSync(RUNTIME_DIR, { recursive: true });
 
   const sanitizedArgs = args.map((arg) => sanitizeArg(String(arg)));
-  const psArgs = [
+  let psArgs = [
     "-NoProfile",
     "-ExecutionPolicy",
     "Bypass",
@@ -53,15 +58,27 @@ export function runPowerShellScript(options: RunScriptOptions): Promise<PowerShe
     psArgs.push("-OutputJsonPath", outputJsonPath);
   }
 
+  const payload = packaged ? preparePowerShellPayload(scriptName, sanitizedArgs, outputJsonPath) : undefined;
+  if (packaged) {
+    psArgs = ["-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command",
+      "$s=[Console]::In.ReadToEnd(); & ([ScriptBlock]::Create($s))"];
+  }
+
   return new Promise((resolve, reject) => {
     let stdout = "";
     let stderr = "";
     let settled = false;
 
-    const child: ChildProcess = spawn("powershell.exe", psArgs, {
+    const psExe = packaged ? path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "powershell.exe") : "powershell.exe";
+    const child: ChildProcess = spawn(psExe, psArgs, {
       windowsHide: !showWindow,
-      stdio: ["ignore", "pipe", "pipe"],
+      cwd: PROJECT_ROOT,
+      stdio: [payload ? "pipe" : "ignore", "pipe", "pipe"],
     });
+    if (payload) {
+      child.stdin?.on("error", () => { /* Spawn/close handlers report the failure. */ });
+      child.stdin?.end(payload, "utf8");
+    }
 
     const timer = setTimeout(() => {
       if (!settled) {

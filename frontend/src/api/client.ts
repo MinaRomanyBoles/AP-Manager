@@ -45,6 +45,9 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    if (res.status === 402 && data.code === "ACTIVATION_REQUIRED") {
+      window.dispatchEvent(new Event("ap-activation-required"));
+    }
     throw new Error(data.error ?? `Request failed (${res.status})`);
   }
 

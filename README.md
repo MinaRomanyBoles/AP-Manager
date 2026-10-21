@@ -44,3 +44,7 @@ AP Manager/
 Data is read/written via Excel COM automation. If Excel is open, live cell values are used. Client counts are always written to column K.
 
 See `README-Arabic.txt` for full Arabic documentation.
+
+## Portable Windows client with activation
+
+See [client build and activation instructions](Docs/CLIENT-BUILD.md) for the standalone Windows edition valid through 25 October 2026, the separate owner-only renewal tool, and validation and protection limits.

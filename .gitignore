@@ -23,3 +23,10 @@ Thumbs.db
 # Env secrets
 .env
 .env.*
+
+# Distribution output and owner-only signing material
+build-output/
+client-releases/
+owner-private/
+*.aplicense
+*private-key.pem
